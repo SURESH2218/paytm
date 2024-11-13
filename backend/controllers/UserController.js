@@ -93,3 +93,54 @@ export const signUpUser = async (req, res) => {
     return res.status(500).json({ msg: "Internal server error" });
   }
 };
+
+const updateBody = zod.object({
+  password: zod.string().optional(),
+  firstName: zod.string().optional(),
+  lastName: zod.string().optional(),
+});
+
+export const updatebody = async (req, res) => {
+  const { success } = updateBody.safeParse(req.body);
+  if (!success) {
+    res.status(411).json({
+      message: "Error while updating information",
+    });
+  }
+
+  await User.updateOne(req.body, {
+    id: req.userId,
+  });
+
+  res.json({
+    message: "Updated successfully",
+  });
+};
+
+export const filterUser = async (req, res) => {
+  const filter = req.query.filter || "";
+
+  const users = await User.find({
+    $or: [
+      {
+        firstName: {
+          $regex: filter,
+        },
+      },
+      {
+        lastName: {
+          $regex: filter,
+        },
+      },
+    ],
+  });
+
+  res.json({
+    user: users.map((user) => ({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      _id: user._id,
+    })),
+  });
+};
