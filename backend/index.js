@@ -11,7 +11,7 @@ app.use(
 );
 connectDB();
 
-import mainRouter from "./routes/index.js";
+import mainRouter from "./routes/userRouter.js";
 app.use("/api/v1", mainRouter);
 
 app.listen(3000);
