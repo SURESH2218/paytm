@@ -10,6 +10,51 @@ const signupSchema = zod.object({
   lastName: zod.string(),
 });
 
+const signinSchema = zod.object({
+  username: zod.string(),
+  password: zod.string(),
+});
+
+export const singinUser = async (req, res) => {
+  const { username, password } = req.body;
+
+  const { success, error } = signinSchema.safeParse(req.body);
+  if (!success) {
+    return res.status(400).json({
+      msg: "Validation failed",
+      errors: error.errors,
+    });
+  }
+
+  const user = await User.findOne({
+    username,
+  });
+  if (!user) {
+    return res.json({
+      msg: "Invalid credentials",
+    });
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+  if (!isPasswordCorrect) {
+    return res.json({
+      msg: "invalid username password ",
+    });
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user._id,
+    },
+    process.env.JWT_SECRET
+  );
+
+  return res.status(200).json({
+    msg: "User logged in Successfully",
+    token,
+  });
+};
+
 export const signUpUser = async (req, res) => {
   const { username, password, firstName, lastName } = req.body;
 
