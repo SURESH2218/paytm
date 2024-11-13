@@ -15,7 +15,7 @@ const signinSchema = zod.object({
   password: zod.string(),
 });
 
-export const singinUser = async (req, res) => {
+export const signinUser = async (req, res) => {
   const { username, password } = req.body;
 
   const { success, error } = signinSchema.safeParse(req.body);
