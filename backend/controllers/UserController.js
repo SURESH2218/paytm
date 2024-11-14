@@ -103,16 +103,39 @@ const updateBody = zod.object({
 export const updatebody = async (req, res) => {
   const { success } = updateBody.safeParse(req.body);
   if (!success) {
-    res.status(411).json({
+    return res.status(411).json({
       message: "Error while updating information",
     });
   }
 
-  await User.updateOne(req.body, {
-    id: req.userId,
-  });
+  const updateData = {};
+
+  if (req.body.password) {
+    updateData.password = await bcrypt.hash(req.body.password, 10);
+  }
+  if (req.body.firstname) updateData.firstname = req.body.firstname;
+  if (req.body.lastname) updateData.lastname = req.body.lastname;
+
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      message: "No valid fields to update",
+    });
+  }
+
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: req.userId },
+    { $set: updateData },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    return res.status(404).json({
+      message: "User not found",
+    });
+  }
 
   res.json({
+    user: updatedUser,
     message: "Updated successfully",
   });
 };
